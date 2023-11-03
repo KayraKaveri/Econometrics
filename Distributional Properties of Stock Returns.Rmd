@@ -1,0 +1,177 @@
+---
+title: "Distributional Properties of Stock Returns"
+author: "Kaveri Kayra"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+### 1) Executive Summary
+
+###### This document explores the distributional properties of stock returns and the factors influencing stock price changes. It emphasizes the importance of understanding these properties for risk assessment and portfolio management. The analysis is based on daily stock price data of Godrej Consumer Products Ltd for the period of one year, from September 1, 2022, to September 30, 2023.It concludes that the stock's returns exhibit fat tails, negative skewness, and do not follow a normal distribution. Understanding these properties is essential for informed investment decisions.
+
+### 2) Intoduction 
+###### Financial econometrics aims to model financial time series data. It's like the physics of economics, using quantitative laws. Statistics is crucial in data science. When working with data, consider four key questions: Is the data discrete or continuous? Is it symmetric or asymmetric? Are there bounds? How likely are extreme values? These questions help understand and analyze the data.
+
+### 3) Structure of the stock price data
+###### The structure of stock price data is typically organized in a tabular format, often used in spreadsheets or data analysis tools, to represent the historical price and trading information of a particular stock over a specified time period where 
+###### 1) Date represents the date of each data point.
+###### 2) Open is the opening price of the stock on that date.
+###### 3) High is the highest price the stock reached during the day.
+###### 4) Low is the lowest price the stock reached during the day.
+###### 5) Close is the closing price of the stock on that date.
+###### 6) Adj.Close is the adjusted closing price, if applicable.
+###### 7) Volume represents the trading volume (number of shares traded) on that date.
+```{r}
+#Import daily stock price data
+df= read.csv("C:\\Users\\Kaveri\\Downloads\\GODREJCP.BO.csv")
+#Remove cells with null values
+df = subset(df, !apply(df, 1, function(row) any(row == "null")))
+#Display Top 6 rows from the dataset
+head(df)
+dim
+```
+```{r}
+#Convert the data type to numeric
+df$Adj.Close <- as.numeric(df$Adj.Close)
+# length
+n<-length((df$Adj.Close))
+# Formula for calculation Daily Returns
+daily_returns<-(df$Adj.Close[-1]/df$Adj.Close[-n])-1
+```
+
+### 4) Descriptive statistics of daily stock returns
+
+```{r }
+library(moments)
+mean_gd<-mean(daily_returns)
+median_gd<-median(daily_returns)
+
+library('LaplacesDemon')
+is.unimodal(daily_returns, min.size=0.1)
+mode_gd <- Mode(daily_returns)
+
+IQR_gd <- IQR(daily_returns)
+sd_gd <- sd(daily_returns)
+var_gd <- var(daily_returns)
+skew_gd<-skewness(daily_returns)
+kurt_gd<-kurtosis(daily_returns)
+desc_stat<-data.frame(c('Mean','Median','Mode','IQR','Standard Deviation','Variance','Skewness','Kurtosis'),c(mean_gd,median_gd,mode_gd,IQR_gd,sd_gd,var_gd,skew_gd,kurt_gd))
+colnames(desc_stat)<-c("Statistic",'Values')
+desc_stat
+```
+###### The average daily return (mean) is approximately 0.0003675407.
+###### The middle value of the returns (median) is approximately 0.0006002041.
+###### The most frequently occurring return (mode) is approximately 0.0011998756.
+###### The spread of the middle 50% of returns (IQR) is approximately 0.0154417496.
+###### The data has moderate volatility, with a standard deviation of approximately 0.0128770320.
+###### The variance, a measure of data spread, is approximately 0.0001658180.
+###### The data distribution is slightly left-skewed (-0.3894157686 skewness).
+###### The data has heavier tails than a normal distribution (4.4327019459 kurtosis).
+
+### 5) Graphical Observation
+#### a) Histogram
+```{r}
+hist(daily_returns,freq=FALSE,main='Distribution of daily returns for Godrej Consumer Products Ltd',xlab='Daily returns',ylab='Density',breaks = 25)
+lines(density(daily_returns),col='blue')
+```
+
+
+###### Histogram of daily returns is a visual representation that can help identify deviations from normality, assess skewness and kurtosis, and provide insights into the overall behavior of the data. For more accurate insights, we will perform various tests below.
+
+#### b) Quantile-quantile (qq) plot
+```{r}
+library(car)
+qqnorm(daily_returns)
+qqline(daily_returns)
+```
+
+
+```{r}
+library("car")
+
+qqPlot(daily_returns)
+```
+###### We observe significant deviations from the diagonal line, particularly in the tails of the plot. These deviations indicate that the data's tails are thicker or heavier than what would be expected under the assumption of a normal distribution. It suggests that extreme values or outliers occur more frequently in the data than a normal distribution would predict.
+
+### 6) Parametric Tests
+#### a) Shapiro-Wilk Test
+###### The Shapiro-Wilk test is a statistical test used to check if a dataset follows a normal distribution.
+```{r}
+library(rstatix)
+shapiro_test(daily_returns)
+
+#Null Hypothesis: The dataset follows  normal distribution.
+#Alternative Hypothesis: The dataset does not normal distribution.
+```
+###### The p-value of 0.002130502 strongly suggests non-normality in Godrej Consumer Products Ltd's daily stock returns, rejecting the null hypothesis.
+
+#### b) Jarque-Bera Test
+###### The Jarque-Bera test is a goodness-of-fit test that determines whether or not sample data have skewness and kurtosis that matches a normal distribution.
+
+```{r}
+library(moments)
+jarque.test(daily_returns)
+
+#Null Hypothesis: The dataset has a skewness and kurtosis that matches a normal distribution.
+#Alternative Hypothesis: The dataset has a skewness and kurtosis that does not match a normal distribution.
+```
+###### With a very low p-value (8.181e-07), we'd reject the null hypothesis, indicating that the daily returns of Godrej Consumer Products Ltd stock aren't normally distributed and display potential skewness.
+
+#### c) Kolmogorov-Smirnov Goodness of Fit Test
+###### The Kolmogorov-Smirnov test is used to test whether or not or not a sample comes from a certain distribution.
+
+```{r}
+library("stats")
+
+# To determine if it came from a normal distribution:
+
+ks.test(daily_returns, "pnorm")
+```
+###### The test indicates that Godrej Consumer Products Ltd's daily stock returns do not fit a normal distribution, challenging the validity of assuming normality for statistical modeling and risk assessment.
+
+#### d) Lilliefors normality test
+```{r}
+library(nortest)
+lillie.test(daily_returns)
+```
+###### The Lilliefors test suggests that the daily returns of Godrej Consumer Products Ltd's stock price are consistent with a normal distribution, as the p-value (0.1055) is greater than the typical significance level of 0.05. Since Lilliefors test is used for small datasets, we won't consider this test.
+
+#### e) Anderson-Darling Test
+
+###### An Anderson-Darling Test is a goodness of fit test that measures how well your data fit a specified distribution. This test is most commonly used to determine whether or not your data follow a normal distribution.
+
+```{r}
+
+
+library('nortest')
+
+
+#conduct Anderson-Darling Test to test for normality
+
+
+ad.test(daily_returns)
+```
+###### The Anderson-Darling normality test indicates that the daily returns of Godrej Consumer Products Ltd's stock price do not follow a normal distribution. 
+
+### 7) Conclusion
+#### a) Fat tails of the distribution of daily returns of the stock.
+
+###### Kurtosis (4.43270194586316) is greater than 3 and the distribution with a fat tail have both the ends of the Q-Q plot to deviate from the straight line and its center follows a straight line(as shown in the above graph).Hence, it is highlighting that the distribution of daily returns for the stock exhibits fat tails, meaning that extreme price movements occur more frequently than what would be expected in a normal distribution. This can have implications for risk assessment and portfolio management in the context of financial analysis.
+
+#### b) Symmetry of the distribution of daily returns of the stock.
+
+###### The negative skewness (-0.389) and the deviations from a straight line observed in the Q-Q plot for the daily returns of the stock indicate that the distribution of these returns is not symmetric. More specifically, it suggests that the distribution is left-skewed or negatively skewed. In practical terms, this means that the data is skewed towards lower values, and there is a tendency for negative returns to be more extreme or frequent than positive returns. This asymmetry in the distribution can have implications for risk assessment and portfolio management when dealing with the stock's daily returns. Investors and analysts should be aware that the stock's return distribution is not symmetrical and may exhibit more downside risk than upside potential.
+
+#### c) Aggregated normality distribution of daily returns of the stock.
+
+###### Lilliefors (Kolmogorov-Smirnov) Normality Test: p-value = 0.1055
+###### Anderson-Darling Normality Test: p-value = 0.02532
+###### Symptomatic One-sample Kolmogorov-Smirnov Test: p-value < 2.2e-16
+###### Jarque-Bera Normality Test: p-value = 8.181e-07
+###### Shapiro-Wilk Test: p-value = 0.002130502
+###### Since the Lilliefors test is typically used for small datasets, and the other tests (Anderson-Darling, Symptomatic Kolmogorov-Smirnov, Jarque-Bera, and Shapiro-Wilk) all provide strong evidence against the null hypothesis of normality, it is reasonable to conclude that the dataset does not follow a normal distribution. These results suggest that the distribution of stock prices for this company during the specified period is not consistent with a normal distribution. This finding has important implications for risk assessment and investment strategies, as it indicates that the data may exhibit non-normative behavior, potentially including fat tails or skewness, which can impact risk management decisions.
+
+### 8) References 
+###### https://seankross.com/2016/02/29/A-Q-Q-Plot-Dissection-Kit.html 
+###### http://www.sthda.com/english/wiki/normality-test-in-r 
