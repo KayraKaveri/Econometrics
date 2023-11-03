@@ -1,0 +1,151 @@
+---
+title: "Exploring Financial Time Series"
+author: "Kaveri Kayra "
+
+output:
+  word_document: default
+  html_document: default
+---
+## 1. Executive Summary
+This document explores the Nature of financial times series of stock returns and applying tests to check stationarity and autocorrelation of time series. The analysis is based on daily stock price data of Greaves Cotton Ltd. for the period of one year, from September 30, 2022, to October 1, 2023.It concludes that the data exhibits non-stationarity but becomes stationary after differencing with significant autocorrelations at specific lags.
+
+## 2. Introduction
+Exploring financial time series data is a critical endeavor in the world of finance and investment. Financial markets are dynamic, and understanding the patterns, trends, and underlying dynamics of asset prices, market indices, and economic indicators over time is essential for making informed decisions and managing risks.
+
+Financial time series data are characterized by their temporal ordering, where observations are recorded at regular intervals, such as daily, weekly, or monthly. Unlike cross-sectional data that captures a snapshot of various variables at a single point in time, financial time series data provide a historical record of how prices, returns, and other financial metrics evolve over a continuum of time.
+
+Financial time series analysis offers insights into crucial questions involving Market Behavior, Risk Management, Investment Strategy, Economic Indicators, Volatility Analysis,and Asset Allocation.It showcases the value of historical data in making informed decisions and managing investments in the ever-changing realm of finance.
+
+```{r}
+#Import daily stock price data
+df=read.csv('C:/Users/SXC Student/Downloads/GREAVESCOT.BO.csv')
+#Remove cells with null values
+df <- subset(df, !apply(df, 1, function(row) any(row == "null")))
+#Display Top 6 rows from the dataset
+head(df)
+```
+
+```{r cars}
+library('aTSA')
+# Length of Adjusted Close Price
+df_n =length(df$Adj.Close)
+# Converting data type to numeric
+df$Adj.Close <- as.numeric(df$Adj.Close)
+# Calculating Daily Return
+dfDailyRet <- (df$Adj.Close[-1]/df$Adj.Close[-df_n]) -1 
+
+```
+
+## 3. Plot of adjusted close of daily stock prices of the assigned company.
+
+
+```{r pressure, echo=FALSE}
+plot(df$Adj.Close,main = "Time Series Plot",
+     xlab = "Time",
+     ylab = "Adjusted Close Prices",
+     type = "l", 
+     col = "blue") 
+abline(h= mean(df$Adj.Close),col="red")
+```
+To confirm the non-stationarity and understand the specific characteristics of the data, we will conduct formal statistical tests like the ADF test. 
+
+## 4. Results of the statistical tests for confirming the stationarity, or otherwise, of the above time series.
+The Augmented Dickey-Fuller (ADF) test is a statistical test used to determine whether a given time series is stationary or not.
+Null Hypothesis (H0): The time series is non-stationary.
+Alternative Hypothesis (H1):The time series has a constant mean and is stationary in nature.
+
+```{r}
+library(aTSA)
+stationary.test(df$Adj.Close)
+```
+Type 1 (No Drift, No Trend): This variation assumes there is no constant drift (a constant offset) and no trend (linear or otherwise) in the time series.
+Type 2 (With Drift, No Trend): In this variation, it is assumed that there is a constant drift (a linear trend without an intercept) but no other trend in the time series.
+Type 3 (With Drift and Trend): In this variation, both a constant drift (linear trend without an intercept) and a trend (linear or otherwise) are assumed to be present in the time series.
+
+Type 2 suggests slightly stronger evidence against stationarity, but the evidence is still not very strong.Hence, the p-values for all three types are relatively high, indicating that the test did not find strong evidence to reject the null hypothesis of non-stationarity. 
+
+## 5. Plot of the first difference of the adjusted close of daily stock prices of the assigned company.
+
+The first difference of the adjusted close of daily stock prices is a new time series that represents the changes in the adjusted closing prices of a stock from one day to the next. It is calculated by taking the difference between the adjusted closing price on a specific day and the adjusted closing price on the previous day.
+
+```{r}
+plot(diff(df$Adj.Close),main = "Time Series Plot",
+     xlab = "Time",
+     ylab = "First Difference in Adjusted Close Prices",
+     type = "l", 
+     col = "blue") 
+abline(h= mean(diff(df$Adj.Close)),col="red")
+```
+The mean line (red line) serves as a reference point for understanding the central tendency of the daily price changes. It can help identify periods of significant deviation from the mean, which may indicate unusual price movements or trends.
+
+The plot appears to exhibit a stationary behavior, as indicated by the fact that it fluctuates around the red mean line. However, to provide a more rigorous confirmation of stationarity, we will conduct an Augmented Dickey-Fuller (ADF) test as a further step of analysis.
+
+## 6. Results of the statistical tests for confirming the stationarity, or otherwise, of the above time series.
+
+The Augmented Dickey-Fuller (ADF) test is a statistical test used to determine whether a given time series is stationary or not.
+Null Hypothesis (H0): The time series is non-stationary.
+Alternative Hypothesis (H1):The time series has a constant mean and is stationary in nature.
+
+```{r}
+adf.test(diff(df$Adj.Close))
+```
+The p-values for all types of tests are effectively zero (0.01), which means that we can confidently reject the null hypothesis of non-stationarity.Hence, it strongly indicates that the first differences of the adjusted close of daily stock prices are stationary.
+
+## 7. Correlogram of the first differences of stock prices.
+A correlogram, also known as an autocorrelation function (ACF) plot, is a graphical representation that displays the autocorrelation coefficients at different lags in a time series data. 
+
+1) The x-axis of the ACF plot represents the lags or time intervals at which autocorrelations are computed. 
+2) The y-axis represents the strength of the autocorrelation between the data point and its past values. The autocorrelation coefficient ranges from -1 to 1, where -1 indicates a perfect negative correlation, 1 indicates a perfect positive correlation, and 0 indicates no correlation.
+
+3) Dotted horizontal lines, often included in the plot, indicate the confidence intervals or significance levels for the autocorrelation coefficients. Data points above these lines are considered statistically significant, suggesting that the autocorrelation is unlikely to be due to random chance.
+```{r}
+x=diff(df$Adj.Close)
+acf(x,     xlab = "Lags",     ylab = "Adjusted Close Prices",
+     col = "blue")
+title("Correlogram of the first differences of stock prices.")
+```
+When looking at ACF plot, we ignore the long spike at lag 0 (pointed by the blue arrow).At lag 0, the ACF is always 1 because any time series is perfectly correlated with itself at the same time point.
+The two blue dash lines represent the significant threshold levels. Anything that spikes over these two lines reveals the significant correlations. Here, significant lags might occur at 11 and 14.
+
+To determine whether the auto correlations at specific lags are statistically significant, we will use  statistical tests such as the Ljung-Box test.
+
+
+## 8.Results of autocorrelation tests using the Ljung Box test.
+The Ljung-Box test is a statistical test used to assess the presence of autocorrelation in time series data
+.
+Null Hypothesis(H_0): There is no autocorrelation at the specified lags.
+Alternate Hypothesis(H_1): There is significant autocorrelation at least at one lag.
+
+Specified lags = 11 and 14
+```{r}
+# Perform the Ljung-Box test
+ljung_box_test <- Box.test(diff(df$Adj.Close),lag=11, type = "Ljung-Box")
+
+# Print the test results
+print(ljung_box_test)
+```
+Since the p-value(0.02233) is less 0.05, you would reject the null hypothesis. This suggests that there is significant autocorrelation in the time series at lag 11.
+
+
+```{r}
+# Perform the Ljung-Box test
+ljung_box_test <- Box.test(diff(df$Adj.Close),lag=14, type = "Ljung-Box")
+
+# Print the test results
+print(ljung_box_test)
+```
+Since the p-value(0.006381) is less 0.05, you would reject the null hypothesis. This suggests that there is significant autocorrelation in the time series at lag 14.
+
+These significant auto correlations indicate that the stock price changes exhibit certain patterns or trends at these specific time lags, and these patterns are not likely due to random chance , that is, it may have some form of seasonality, periodicity, or momentum in the stock price data that could be further explored in analysis or modeling efforts.
+
+## 9. Conclusion
+In conclusion, this analysis reveals valuable insights into the financial time series data of Greaves Cotton Ltd. The data exhibits non-stationarity but becomes stationary after differencing. Significant autocorrelations at specific lags suggest potential patterns or seasonality in the stock price changes, warranting further exploration in modeling efforts.
+
+## 10.References 
+https://www.statology.org/autocorrelation-in-r/ 
+
+
+
+
+
+
