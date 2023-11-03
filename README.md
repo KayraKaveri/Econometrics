@@ -17,11 +17,34 @@
 - **Data:** Performance analysis of Man Infraconstruction, Emami, Muthoot Finance, and Oil India.
 - **Outcome:** Understanding daily returns, correlations, and portfolio construction strategies.
 
+### 4. Financial Analysis of Godrej Consumer Products Ltd
+
+**Overview:** This report presents a comprehensive financial analysis of Godrej Consumer Products Ltd (GCPL), covering liquidity, efficiency, solvency, profitability, and market performance.
+
+**Sections:**
+1. **Introduction:** Overview of GCPL and scope of the financial analysis.
+2. **Company Profile:** Details on GCPL’s operations and profile.
+3. **Industry Profile:** Insights into the FMCG industry's landscape.
+4. **Financial Analysis:** Evaluations across key financial aspects.
+
+**Metrics Covered:**
+- **Liquidity Analysis:** Current Ratio, Quick Ratio, Cash Ratio.
+- **Efficiency Analysis:** Inventory Turnover, Days Sales in Inventory, Receivable Turnover, and more.
+- **Solvency Analysis:** Debt-to-Total-Assets Ratio, Times-Interest-Earned, etc.
+- **Profitability Analysis:** Operating Margin, Return on Assets, Return on Equity (ROE), etc.
+- **Market Performance Analysis:** Dividend Pay-out Ratio, Price-Earnings Multiple, and more.
+
+**Conclusion:** Summarizes the key findings and conclusions from the analysis.
+
+**Appendix:** Contains supporting information and data sources used in the analysis.
+
+
 ## Folder Structure
 
 - `Project 1`: Stock Returns Distribution
 - `Project 2`: Financial Time Series Analysis
 - `Project 3`: Investment Portfolio Construction
+- `Project 4`: Financial Analysis of Godrej Consumer Products Ltd
 
 Each project folder contains detailed analysis, data sources, and conclusions derived from the specific financial time series study.
 
