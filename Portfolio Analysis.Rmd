@@ -1,0 +1,315 @@
+---
+title: "Portfolio Analysis"
+output:
+  word_document: default
+  html_document: default
+---
+## 1. Executive summary
+In this project, we delve into the performance of four notable companies—Man Infraconstruction, Emami, Muthoot Finance, and Oil India—over a year, from September 2022 to October 2023. Our goal is to analyze their historical performance, assess associated risks, understand correlations, and ultimately, construct an investment portfolio using these assets.
+
+## 2. Introduction
+Investing wisely in the stock market requires a deep understanding of individual assets and how they perform collectively in a portfolio. In this project, we analyze the historical performance and risks of four companies: Man Infraconstruction, Emami, Muthoot Finance, and Oil India.
+
+We start by examining the daily returns of these companies to gauge their volatility and risk-return profiles. Then, we explore how these assets correlate with each other, an essential factor in portfolio construction. Low covariance between assets can reduce overall portfolio risk.
+
+Finally, we construct a portfolio using different weightings for these companies and assess its expected returns and risk. This project equips investors with valuable insights to make informed investment decisions, aligning with their financial goals and risk tolerance.
+
+
+##### Importing Daily stock price
+```{r}
+#Daily stock price data of the assigned companies for the period of one year from September 1, 2022, to September 30, 2023
+#Man Infraconstruction
+man = read.csv("C:\\Users\\Kaveri\\Downloads\\MANINFRA.BO.csv")
+#Emami
+emami = read.csv("C:\\Users\\Kaveri\\Downloads\\EMAMILTD.BO.csv")
+#Muthoot Finance
+muth = read.csv("C:\\Users\\Kaveri\\Downloads\\MUTHOOTFIN.BO.csv")
+#Oil India
+oil = read.csv("C:\\Users\\Kaveri\\Downloads\\OIL.BO.csv")
+```
+##### Cleaning Dataset 
+```{r}
+man <- subset(man, !apply(man, 1, function(row) any(row == "null")))
+
+emami <- subset(emami, !apply(emami, 1, function(row) any(row == "null")))
+
+oil <- subset(oil, !apply(oil, 1, function(row) any(row == "null")))
+
+muth <- subset(muth, !apply(muth, 1, function(row) any(row == "null")))
+
+
+```
+##### Daily returns of the adjusted close price
+```{r}
+# Length of Adjusted Close Price
+man_n =length(man$Adj.Close)
+# Converting data type to numeric
+man$Adj.Close <- as.numeric(man$Adj.Close)
+# Calculating Daily Return
+manDailyRet <- (man$Adj.Close[-1]/man$Adj.Close[-man_n]) -1 
+
+
+# Length of Adjusted Close Price
+emami_n =length(man$Adj.Close)
+# Converting data type to nummeric
+emami$Adj.Close <- as.numeric(emami$Adj.Close)
+# Calculating Daily Return
+emamiDailyRet <- (emami$Adj.Close[-1]/emami$Adj.Close[-emami_n]) -1 
+
+
+# Length of Adjusted Close Price
+muth_n =length(man$Adj.Close)
+# Converting data type to nummeric
+muth$Adj.Close <- as.numeric(muth$Adj.Close)
+# Calculating Daily Return
+muthDailyRet <- (muth$Adj.Close[-1]/muth$Adj.Close[-muth_n]) -1 
+
+
+#Length of Adjusted Close Price
+oil_n =length(oil$Adj.Close)
+# Converting data type to nummeric
+oil$Adj.Close <- as.numeric(oil$Adj.Close)
+# Calculating Daily Return
+oilDailyRet <- (oil$Adj.Close[-1]/oil$Adj.Close[-oil_n]) -1 
+
+#Portfolio daily returns of the four assigned companies.
+PortfolioDailyReturn <- data.frame(manDailyRet,emamiDailyRet,muthDailyRet,oilDailyRet)
+head(PortfolioDailyReturn)
+```
+
+**Man Infraconstruction:** The daily returns for Man Infraconstruction vary from approximately -0.0253 (a significant decrease) to 0.0293 (a substantial increase). The overall returns appear to be quite volatile, with both positive and negative fluctuations.
+
+**Emami:** Emami's daily returns range from approximately -0.0058 (a slight decrease) to 0.0225 (a notable increase).
+Similar to Man Infraconstruction, Emami also exhibits volatility in its daily returns.
+
+**Muthoot Finance:** The daily returns for Muthoot Finance vary from approximately -0.0138 (a decrease) to 0.0170 (a significant increase). Muthoot Finance also experiences fluctuations in its daily returns.
+
+**Oil India:** Oil India's daily returns range from approximately -0.0249 (a significant decrease) to 0.0134 (a moderate increase).Like the other companies, Oil India demonstrates volatility in its daily returns.
+
+All four companies exhibit fluctuations in their daily returns, which is typical in the financial markets. This volatility can be influenced by various factors, including economic conditions, company-specific news, and market sentiment.
+
+# 3. Summary statistics of the daily returns of the four assigned companies.
+
+```{r}
+library(moments)
+library('LaplacesDemon')
+#calculating mode
+is.unimodal(manDailyRet, min.size=0.1)
+mode_man <- Mode(manDailyRet)
+is.unimodal(emamiDailyRet, min.size=0.1)
+mode_emami <- Mode(emamiDailyRet)
+is.unimodal(muthDailyRet, min.size=0.1)
+mode_muth <- Mode(muthDailyRet)
+is.unimodal(oilDailyRet, min.size=0.1)
+mode_oil <- Mode(oilDailyRet)
+#calculating mean , median, IQR, Standard Deviation, Variance, Skewness, Kurtosis
+DescStat = data.frame( c('Mean', 'Median','Mode','IQR','Standard Deviation','Variance' ,'Skewness', 'Kurtosis'),
+                       c(mean(manDailyRet), median(manDailyRet),mode_man,IQR(manDailyRet),sd(manDailyRet),var(manDailyRet), skewness(manDailyRet), 
+                         kurtosis(manDailyRet)), c(mean(emamiDailyRet), median(emamiDailyRet),mode_emami,IQR(emamiDailyRet),sd(emamiDailyRet),var(emamiDailyRet), 
+                                                   skewness(emamiDailyRet), 
+                                                   kurtosis(emamiDailyRet)),
+                       c(mean(muthDailyRet), median(muthDailyRet),mode_muth, IQR(muthDailyRet),sd(muthDailyRet),var(muthDailyRet),skewness(muthDailyRet), 
+                         kurtosis(muthDailyRet)),c(mean(oilDailyRet), 
+                                                       median(oilDailyRet),mode_oil,IQR(oilDailyRet),sd(oilDailyRet),var(oilDailyRet), 
+                                                       skewness(oilDailyRet), 
+                                                       kurtosis(oilDailyRet)))
+
+colnames(DescStat) <- c('Values', 'Man', 'Emami', 'Muth', 'oil')
+DescStat
+```
+
+1. **Mean**:
+   - Man Infraconstruction has the highest mean daily return at approximately 0.0021, indicating relatively 
+     better average returns among the four companies.
+   - Emami has the lowest mean daily return at approximately 0.0004.
+
+2. **Median**:
+   - All four companies have median daily returns close to or slightly below zero. This suggests that, on average, 
+     the returns are centered around zero for each company.
+
+3. **Mode**:
+   - Man Infraconstruction and Emami have modes with both positive and negative values, indicating a mix of 
+     frequently occurring positive and negative returns.
+  -  Muthoot Finance and Oil India have modes that are closer to zero, suggesting that daily returns near zero 
+     are more common for these companies.
+
+4. **IQR (Interquartile Range)**:
+   - Man Infraconstruction has the largest IQR (approximately 0.0239), indicating a wide spread in daily returns, 
+     with some days experiencing significant gains or losses.
+   - Muthoot Finance has the smallest IQR (approximately 0.0145), implying relatively less variability in 
+     daily returns compared to the other companies.
+
+5. **Standard Deviation**:
+   - Man Infraconstruction has the highest standard deviation (approximately 0.0243), signifying higher volatility 
+     in its daily returns.
+   - Muthoot Finance has the lowest standard deviation (approximately 0.0152), suggesting relatively lower 
+     volatility compared to the others.
+
+6. **Variance**:
+   - Man Infraconstruction has the highest variance (approximately 0.0006), indicating a wider dispersion of 
+     daily returns.
+   - Muthoot Finance has the lowest variance (approximately 0.0002), suggesting less dispersion compared to the 
+     other companies.
+
+7. **Skewness**:
+   - Man Infraconstruction has positive skewness (approximately 2.87), indicating a right-skewed distribution with 
+     a longer tail on the right side.
+   - Emami also exhibits positive skewness (approximately 0.56), but it is less pronounced than Man Infraconstruction.
+   - Muthoot Finance and Oil India have positive skewness as well, suggesting right-skewed distributions, but
+     with lower magnitudes.
+
+8. **Kurtosis**:
+   - All four companies have kurtosis values greater than 3, indicating leptokurtic distributions with heavy tails.
+
+
+Man Infraconstruction has higher returns, greater volatility, and a more pronounced right-skewed, heavy-tailed distribution, indicating higher risk. Muthoot Finance offers lower returns, less volatility, and a less extreme right-skewed distribution. Emami and Oil India have moderate risk-return profiles, falling between Man Infraconstruction and Muthoot Finance in terms of risk and return characteristics.
+
+## 4.Plot of the pair-wise correlation of the four assigned companies.
+
+
+```{r}
+#compute correlation matrix
+correlation_matrix <- cor(PortfolioDailyReturn)
+# Print the correlation matrix
+print(correlation_matrix)
+```
+
+
+```{r}
+#commpute pair plot
+pairs(PortfolioDailyReturn, col = rainbow(3), pch = 20)
+```
+
+
+```{r}
+#compute correlation plot
+library(corrplot)
+
+corrplot(correlation_matrix, method = "circle", type = "lower", tl.col = "black")
+
+```
+
+1. **Man Infraconstruction vs. Emami (0.0001)**:
+   - The correlation between Man Infraconstruction and Emami's daily returns is very close to zero (0.0001).
+   - This near-zero correlation suggests that there is almost no linear relationship between the daily returns 
+     of these two companies. They move independently of each other.
+
+2. **Man Infraconstruction vs. Muthoot Finance (0.176)**:
+   - The correlation between Man Infraconstruction and Muthoot Finance's daily returns is positive (0.176).
+   - A positive correlation implies that, on some days, when Man Infraconstruction has positive returns, 
+    Muthoot Finance tends to have positive returns as well, but the correlation is not very strong.
+
+3. **Man Infraconstruction vs. Oil India (0.015)**:
+   - The correlation between Man Infraconstruction and Oil India's daily returns is positive but very low (0.015).
+   - This suggests a weak positive relationship, meaning that there may be some days when they move in a
+     similar direction, but overall, their movements are largely independent.
+
+4. **Emami vs. Muthoot Finance (0.011)**:
+   - The correlation between Emami and Muthoot Finance's daily returns is positive but quite low (0.011).
+   - Similar to the previous case, this indicates a weak positive relationship, with 
+     occasional alignment in their returns.
+
+5. **Emami vs. Oil India (0.095)**:
+   - The correlation between Emami and Oil India's daily returns is positive (0.095).
+   - This suggests a somewhat stronger positive relationship compared to some of the other pairs, but it is 
+     still relatively modest.
+
+6. **Muthoot Finance vs. Oil India (-0.044)**:
+   - The correlation between Muthoot Finance and Oil India's daily returns is negative (-0.044).
+   - A negative correlation implies that, on some days, when Muthoot Finance has positive returns, Oil India tends 
+     to have negative returns, and vice versa. However, the correlation is weak.
+
+Overall, the correlation matrix indicates that the relationships between the daily returns of these four companies are generally weak and close to zero. This suggests that these companies' returns are relatively independent of each other, which can be valuable for diversification within a portfolio. 
+
+## 5. Variance covariance matrix of the four assigned companies.
+```{r}
+VCM = cov(PortfolioDailyReturn)
+VCM 
+
+```
+**Covariance between Man Infraconstruction and Emami (4.88e-08),Man Infraconstruction and Muthoot Finance (6.50e-05),an Infraconstruction and Oil India (6.76e-06),Emami and Muthoot Finance (3.01e-06),Emami and Oil India (3.13e-05)** : This near-zero covariance suggests that the daily returns almost independent of each other. They do not tend to move together or in opposite directions.
+
+**Covariance between Muthoot Finance and Oil India (-1.22e-05):** This negative covariance suggests a weak tendency for the returns of Muthoot Finance and Oil India to move in opposite directions on average, but the magnitude is very small.
+
+In the context of portfolio management and risk analysis, small or near-zero covariances between assets in a portfolio can be desirable because they indicate that these assets are relatively independent of each other. This independence can be beneficial for diversification because it means that the assets may not all react to the same market events in a correlated manner. Diversification can help spread risk and potentially reduce overall portfolio volatility.
+
+## 6. Mean of the daily returns of the four-stock portfolio and annualised portfolio return.
+```{r}
+# Define the weight matrix (equally weighted)
+W <- matrix(c(0.25, 0.25, 0.25, 0.25), byrow = FALSE)
+
+# Define the column matrix of mean daily returns for the four stocks
+MeanMatrix <- matrix(c(mean(manDailyRet), mean(emamiDailyRet), mean(muthDailyRet), mean(oilDailyRet)))
+print("Mean Matrix:")
+print(MeanMatrix)
+# Portfolio Return
+Portfolio_Return= t(W)%*%MeanMatrix
+Portfolio_Return
+# Annualized Portfolio Return
+Annualise_Rp=((1+Portfolio_Return)^233) -1
+Annualise_Rp
+
+
+```
+The Portfolio Return and Annualized Portfolio Return values you provided are as follows:
+
+1. **Portfolio Return**: 0.001394783 (approximately 0.1395%)
+
+2. **Annualized Portfolio Return**: 0.3836959 (approximately 38.37%)
+
+Let's interpret these values:
+
+- **Portfolio Return (0.1395%)**: This represents the expected return on the investment portfolio based on the weights we've assigned to different assets (stocks) in the portfolio and their historical mean daily returns. In this case, the portfolio is expected to generate a return of approximately 0.1395% on a daily basis. 
+
+- **Annualized Portfolio Return (38.37%)**: This is an annualized estimate of the expected return of the portfolio. To annualize the daily return, the code assumed 233 trading days in a year. So, the portfolio is expected to generate an annual return of approximately 38.37%. 
+
+The Portfolio Return of 0.1395% suggests that the portfolio's daily returns are relatively modest, and it might not experience significant daily fluctuations. The Annualized Portfolio Return of 38.37% is quite impressive and indicates that, on an annual basis, the portfolio is expected to generate substantial returns, assuming the historical trends and weights remain consistent. 
+
+
+
+# 7. Standard deviation of the daily returns of the four-stock portfolio and annualised portfolio standard deviation.
+```{r}
+#portfolio risk
+PortfolioRisk=sqrt((t(W)%*%VCM)%*%W)
+PortfolioRisk
+#Annualised portfolio standard deviation
+Annualise_sd=PortfolioRisk*sqrt(233)
+Annualise_sd
+
+```
+
+1. **PortfolioRisk (0.0102)**:
+   - PortfolioRisk represents the standard deviation of the daily returns of the four-stock portfolio. It 
+     quantifies the degree of variability or volatility in the portfolio's daily performance.
+   - A value of 0.0102 indicates that, on average, the portfolio's daily returns are expected to deviate from its 
+     mean return by approximately 1.02% in either direction.
+   - In simpler terms, this means that you can expect some daily ups and downs in the performance of your 
+     portfolio, with most days experiencing relatively small fluctuations.
+
+2. **Annualized Portfolio Standard Deviation (0.1558)**:
+   - Annualized Portfolio Standard Deviation is an annualized measure of the risk or volatility in your portfolio. 
+     It takes into account the number of trading days in a year (assumed to be 233 in this case) to express the 
+     risk on an annual scale.
+   - A value of 0.1558 indicates that, over the course of a year, you can expect your portfolio's returns to 
+     deviate from its mean return by approximately 15.58%.
+   - In practical terms, this means that your portfolio is expected to experience some level of volatility 
+     throughout the year, with the potential for both positive and negative fluctuations in its performance.
+
+In summary, these risk measures may be considered reasonable for investors who are comfortable with moderate risk. However,it's crucial to align them with your specific risk tolerance and investment objectives. 
+
+# 8. Conclusions
+In conclusion, the analysis of the portfolio comprising four companies - Man Infraconstruction, Emami, Muthoot Finance, and Oil India - reveals several key findings and insights.
+
+1. **Volatility and Risk Profiles**: All four companies exhibit fluctuations in their daily returns, which is typical in financial markets. Man Infraconstruction has the highest volatility, with both significant gains and losses, indicating higher risk. In contrast, Muthoot Finance demonstrates lower volatility and, therefore, lower risk. Emami and Oil India fall in between these two extremes in terms of both risk and return profiles.
+
+2. **Diversification**: The correlation matrix shows that the relationships between the daily returns of these four companies are generally weak and close to zero. This suggests that these companies' returns are relatively independent of each other, making the portfolio suitable for diversification. Diversification can help spread risk and reduce overall portfolio volatility.
+
+3. **Portfolio Returns**: The portfolio is expected to generate a daily return of approximately 0.1395%, and when annualized, this equates to an impressive 38.37%. This suggests that, on an annual basis, your portfolio is poised to yield substantial returns.
+
+4. **Portfolio Risk**: The portfolio's risk, as measured by PortfolioRisk, indicates that you can expect some daily ups and downs in performance, with most days experiencing relatively small fluctuations. The annualized Portfolio Standard Deviation of 15.58% suggests that your portfolio may experience volatility over the course of a year, but it also presents opportunities for gains.
+
+In summary, the portfolio analysis provides valuable insights for investors. While the portfolio offers the potential for significant annualized returns, it does come with a moderate level of risk. It's essential to align these findings with your specific risk tolerance and investment objectives. Additionally, regularly monitoring the portfolio's performance and staying informed about market conditions and company-specific factors is crucial for effective portfolio management and risk mitigation.
+
+# 9. References
+1. Yahoo Finance (finance.yahoo.com)
+2. Investopedia (www.investopedia.com)
